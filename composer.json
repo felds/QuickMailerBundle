@@ -1,0 +1,13 @@
+{
+    "name": "felds/quick-mailer-bundle",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luiz Felds Liscia",
+            "email": "dev@felds.com.br"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
