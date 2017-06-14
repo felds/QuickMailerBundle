@@ -119,6 +119,7 @@ $success = $mailer->sendTo($recipient, [
 {% block text %}
 App Name
 ========
+
 {{ block('text_content') }}
 {% endblock %}
 ```
@@ -129,7 +130,7 @@ App Name
 {% extends 'email/base.html.twig' %}
 
 {% block subject -%}
-{{ parent }} - You received a cookie!
+{{ parent() }} - You received a cookie!
 {%- endblock %}
 
 {% block html_content %}
@@ -147,7 +148,7 @@ Take this delicious cookie
 {% extends 'email/base.html.twig' %}
 
 {% block subject -%}
-{{ parent }} - Take a sip.
+{{ parent() }} - Take a sip.
 {%- endblock %}
 
 {% block html_content %}
@@ -180,12 +181,12 @@ services:
     cookie_quick_mailer:
         parent: abstract_quick_mailer
         arguments:
-            - 'email/email/cookie.html.twig'
+            - 'email/cookie.html.twig'
 
     tea_quick_mailer:
         parent: abstract_quick_mailer
         arguments:
-            - 'email/email/tea.html.twig'
+            - 'email/tea.html.twig'
 ```
 
 ### Step 3: Send the email
