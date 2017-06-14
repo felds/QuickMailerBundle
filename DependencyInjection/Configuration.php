@@ -24,8 +24,19 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('defaults')
                     ->children()
-                        ->scalarNode('from_name')->isRequired()->end()
-                        ->scalarNode('from_email')->isRequired()->end()
+                        ->arrayNode('from')
+                            ->isRequired()
+                            ->children()
+                                ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                                ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
+                            ->end()
+                        ->end() // from
+                        ->arrayNode('reply_to')
+                            ->children()
+                                ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                                ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
+                            ->end()
+                        ->end() // reply_to
                     ->end()
                 ->end() // defaults
                 ->arrayNode('templates')

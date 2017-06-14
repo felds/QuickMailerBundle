@@ -12,6 +12,7 @@ class QuickMailer
     private $mailer;
     private $twig;
     private $from;
+    private $replyTo;
     private $template;
 
     public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $template)
@@ -23,6 +24,7 @@ class QuickMailer
 
     /**
      * @TODO thow exception when a block is not found (maybe)
+     * @TODO validate from
      */
     public function sendTo(MailableInterface $recipient, array $payload = []): int
     {
@@ -38,6 +40,10 @@ class QuickMailer
             ->addPart($textBody, 'text/plain')
         ;
 
+        if ($this->replyTo) {
+            $message->setReplyTo([ $this->replyTo->getEmail() => $this->replyTo->getName() ]);
+        }
+
         return $this->mailer->send($message);
     }
 
@@ -51,6 +57,13 @@ class QuickMailer
     public function setFromByNameAndEmail(string $name, string $email): self
     {
         $this->from = new Mailable($name, $email);
+
+        return $this;
+    }
+
+    public function setReplyToByNameAndEmail(string $name, string $email): self
+    {
+        $this->replyTo = new Mailable($name, $email);
 
         return $this;
     }

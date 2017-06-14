@@ -31,8 +31,9 @@ class FeldsQuickMailerExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
-        $fromName   = $config['defaults']['from_name'];
-        $fromEmail  = $config['defaults']['from_email'];
+
+        $from       = $config['defaults']['from'];
+        $replyTo    = $config['defaults']['reply_to'] ?? false;
 
         foreach ($config['templates'] as $name => $template) {
             $id = 'quickmailer.' . $name;
@@ -42,7 +43,8 @@ class FeldsQuickMailerExtension extends Extension
                 new Reference('twig'),
                 $template,
             ]);
-            $definition->addMethodCall('setFromByNameAndEmail', [ $fromName, $fromEmail ]);
+            $definition->addMethodCall('setFromByNameAndEmail', [ $from['name'], $from['email'] ]);
+            $definition->addMethodCall('setReplyToByNameAndEmail', [ $replyTo['name'], $replyTo['email'] ]);
 
             $container->setDefinition($id, $definition);
         }
