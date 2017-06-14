@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Basic installation and usage info
 - Configuration structure
+- Reply-to option
 
 
 ## 0.1.0 - 2017-06-13
