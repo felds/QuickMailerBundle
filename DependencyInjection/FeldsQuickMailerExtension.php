@@ -34,6 +34,7 @@ class FeldsQuickMailerExtension extends Extension
 
         $from       = $config['defaults']['from'];
         $replyTo    = $config['defaults']['reply_to'] ?? false;
+        $data       = $config['defaults']['data'] ?? [];
 
         foreach ($config['templates'] as $name => $template) {
             $id = 'quickmailer.' . $name;
@@ -44,7 +45,15 @@ class FeldsQuickMailerExtension extends Extension
                 $template,
             ]);
             $definition->addMethodCall('setFromByNameAndEmail', [ $from['name'], $from['email'] ]);
-            $definition->addMethodCall('setReplyToByNameAndEmail', [ $replyTo['name'], $replyTo['email'] ]);
+
+            if ($replyTo) {
+                $definition->addMethodCall('setReplyToByNameAndEmail', [ $replyTo['name'], $replyTo['email'] ]);
+            }
+
+            if ($data) {
+                $definition->addMethodCall('setDefaultData', [ $data ]);
+            }
+
 
             $container->setDefinition($id, $definition);
         }

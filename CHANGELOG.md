@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Basic installation and usage info
 - Configuration structure
 - Reply-to option
+- Default data
 
 
 ## 0.1.0 - 2017-06-13

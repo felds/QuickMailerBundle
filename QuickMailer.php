@@ -14,6 +14,7 @@ class QuickMailer
     private $from;
     private $replyTo;
     private $template;
+    private $defaultData;
 
     public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $template)
     {
@@ -28,9 +29,11 @@ class QuickMailer
      */
     public function sendTo(MailableInterface $recipient, array $payload = []): int
     {
-        $subject    = $this->getSubject($payload);
-        $htmlBody   = $this->getHtmlBody($payload);
-        $textBody   = $this->getTextBody($payload);
+        $data = array_merge($this->defaultData, $payload);
+
+        $subject    = $this->getSubject($data);
+        $htmlBody   = $this->getHtmlBody($data);
+        $textBody   = $this->getTextBody($data);
 
         $message = $this->mailer->createMessage()
             ->setFrom([ $this->from->getEmail() => $this->from->getName() ])
@@ -64,6 +67,13 @@ class QuickMailer
     public function setReplyToByNameAndEmail(string $name, string $email): self
     {
         $this->replyTo = new Mailable($name, $email);
+
+        return $this;
+    }
+
+    public function setDefaultData(array $data): self
+    {
+        $this->defaultData = $data;
 
         return $this;
     }

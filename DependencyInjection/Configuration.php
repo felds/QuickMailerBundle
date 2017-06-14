@@ -37,6 +37,12 @@ class Configuration implements ConfigurationInterface
                                 ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
                             ->end()
                         ->end() // reply_to
+                        ->arrayNode('data')
+                            ->useAttributeAsKey('name')
+                            ->prototype('scalar')
+                                ->isRequired()
+                            ->end()
+                        ->end() // data
                     ->end()
                 ->end() // defaults
                 ->arrayNode('templates')
