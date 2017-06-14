@@ -7,18 +7,17 @@ use Felds\QuickMailerBundle\Model\MailableInterface;
 use Swift_Mailer;
 use Twig_Environment;
 
-class Mailer
+class QuickMailer
 {
     private $mailer;
     private $twig;
     private $from;
     private $template;
 
-    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $fromName, string $fromEmail, string $template)
+    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $template)
     {
         $this->mailer   = $mailer;
         $this->twig     = $twig;
-        $this->from     = new Mailable($fromName, $fromEmail);
         $this->template = $this->twig->load($template);
     }
 
@@ -40,6 +39,20 @@ class Mailer
         ;
 
         return $this->mailer->send($message);
+    }
+
+    public function setFrom(MailableInterface $from): self
+    {
+        $this->from = $from;
+
+        return $this;
+    }
+
+    public function setFromByNameAndEmail(string $name, string $email): self
+    {
+        $this->from = new Mailable($name, $email);
+
+        return $this;
     }
 
     private function getSubject(array $payload = []): string
