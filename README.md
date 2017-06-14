@@ -126,7 +126,7 @@ App Name
 ```twig
 {# app/Resources/views/email/cookie.html.twig #}
 
-{% extends '_email/base.html.twig' %}
+{% extends 'email/base.html.twig' %}
 
 {% block subject -%}
 {{ parent }} - You received a cookie!
@@ -144,7 +144,7 @@ Take this delicious cookie
 ```twig
 {# app/Resources/views/email/tea.html.twig #}
 
-{% extends '_email/base.html.twig' %}
+{% extends 'email/base.html.twig' %}
 
 {% block subject -%}
 {{ parent }} - Take a sip.
