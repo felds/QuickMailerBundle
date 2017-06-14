@@ -20,6 +20,26 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('felds_quick_mailer');
 
+        $rootNode
+            ->children()
+                ->arrayNode('defaults')
+                    ->children()
+                        ->scalarNode('from_name')->isRequired()->end()
+                        ->scalarNode('from_email')->isRequired()->end()
+                    ->end()
+                ->end() // defaults
+                ->arrayNode('templates')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                    ->useAttributeAsKey('name')
+                    ->prototype('scalar')
+                        ->isRequired()
+                        ->cannotBeEmpty()
+                    ->end()
+                ->end() // templates
+            ->end()
+        ;
+
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
         // more information on that topic.
