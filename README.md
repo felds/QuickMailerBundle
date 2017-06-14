@@ -1,5 +1,5 @@
-Felds\\QuickMailerBundle
-========================
+QuickMailerBundle
+=================
 
 
 ## Instalation
