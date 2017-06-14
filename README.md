@@ -88,15 +88,117 @@ services:
 
 use Felds\QuickMailerBundle\Model\Mailable;
 
-  // asuming you're inside a controller action:
+// asuming we're inside a controller action:
 
-  $recipient = new Mailable('Recipient`s Name', 'recipient');
+$recipient = new Mailable('Recipient`s Name', 'recipient@example.com');
 
-  $mailer = $this->get('my_quick_mailer');
-  $success = $mailer->sendTo($recipient, [
-      'name'    => $recipient->getName(),
-      'flavor'  => 'blueberry',
-  ]);
+$mailer = $this->get('my_quick_mailer');
+$success = $mailer->sendTo($recipient, [
+    'name'    => $recipient->getName(),
+    'flavor'  => 'blueberry',
+]);
+```
 
-  // and it's that simple. really!!
+
+## Sending multiple different emails
+
+
+### Step 1: Create multiple templates
+
+```twig
+{# app/Resources/views/email/base.html.twig #}
+
+{% block subject "App Name" %}
+
+{% block html %}
+<h1>App Name</h1>
+
+{{ block('html_content') }}
+{% endblock %}
+
+{% block text %}
+App Name
+========
+{{ block('text_content') }}
+{% endblock %}
+```
+
+```twig
+{# app/Resources/views/email/cookie.html.twig #}
+
+{% extends '_email/base.html.twig' %}
+
+{% block subject -%}
+{{ parent }} - You received a cookie!
+{%- endblock %}
+
+{% block html_content %}
+<p>Take this delicious cookie</p>
+{% endblock %}
+
+{% block text_content %}
+Take this delicious cookie
+{% endblock %}
+```
+
+```twig
+{# app/Resources/views/email/tea.html.twig #}
+
+{% extends '_email/base.html.twig' %}
+
+{% block subject -%}
+{{ parent }} - Take a sip.
+{%- endblock %}
+
+{% block html_content %}
+<p>Just relax. I'm bringing you some tea.</p>
+{% endblock %}
+
+{% block text_content %}
+Just relax. I'm bringing you some tea.
+{% endblock %}
+```
+
+
+### Step 2: Create multiple services
+
+```yaml
+# app/config/services.yml
+services:
+    # ...
+    abstract_quick_mailer:
+        class: Felds\QuickMailerBundle\Mailer
+        public: true
+        abstract: true
+        arguments:
+            - '@mailer'
+            - '@twig'
+            - 'From Name'
+            - 'from-email@example.com'
+            # don't fill the template parameter
+
+    cookie_quick_mailer:
+        parent: abstract_quick_mailer
+        arguments:
+            - 'email/email/cookie.html.twig'
+
+    tea_quick_mailer:
+        parent: abstract_quick_mailer
+        arguments:
+            - 'email/email/tea.html.twig'
+```
+
+### Step 3: Send the email
+
+```php
+<?php
+
+use Felds\QuickMailerBundle\Model\Mailable;
+
+// asuming we're inside a controller action:
+
+$recipient = new Mailable('Recipient`s Name', 'recipient@example.com');
+
+$mailer = $this->get('cookie_quick_mailer');
+$success = $mailer->sendTo($recipient, []);
 ```
