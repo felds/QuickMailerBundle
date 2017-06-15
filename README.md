@@ -32,14 +32,9 @@ class AppKernel extends Kernel
     {
         $bundles = array(
             // ...
-
-            new Felds\\QuickMailerBundle(),
+            new Felds\QuickMailerBundle\FeldsQuickMailerBundle(),
         );
-
-        // ...
     }
-
-    // ...
 }
 ```
 
