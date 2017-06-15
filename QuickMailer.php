@@ -14,7 +14,7 @@ class QuickMailer
     private $from;
     private $replyTo;
     private $template;
-    private $defaultData;
+    private $defaultData = [];
 
     public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $template)
     {
