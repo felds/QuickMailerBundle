@@ -57,16 +57,9 @@ class QuickMailer
         return $this;
     }
 
-    public function setFromByNameAndEmail(string $name, string $email): self
+    public function setReplyTo(MailableInterface $replyTo): self
     {
-        $this->from = new Mailable($name, $email);
-
-        return $this;
-    }
-
-    public function setReplyToByNameAndEmail(string $name, string $email): self
-    {
-        $this->replyTo = new Mailable($name, $email);
+        $this->replyTo = $replyTo;
 
         return $this;
     }

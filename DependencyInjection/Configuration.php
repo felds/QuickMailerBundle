@@ -16,33 +16,23 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('felds_quick_mailer');
+        $rootNode = $treeBuilder->root('quickmailer');
 
         $rootNode
             ->children()
-                ->arrayNode('defaults')
+                ->arrayNode('from')
+                    ->isRequired()
                     ->children()
-                        ->arrayNode('from')
-                            ->isRequired()
-                            ->children()
-                                ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
-                                ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
-                            ->end()
-                        ->end() // from
-                        ->arrayNode('reply_to')
-                            ->children()
-                                ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
-                                ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
-                            ->end()
-                        ->end() // reply_to
-                        ->arrayNode('data')
-                            ->useAttributeAsKey('name')
-                            ->prototype('scalar')
-                                ->isRequired()
-                            ->end()
-                        ->end() // data
+                        ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
                     ->end()
-                ->end() // defaults
+                ->end() // from
+                ->arrayNode('reply_to')
+                    ->children()
+                        ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
+                    ->end()
+                ->end() // reply_to
                 ->arrayNode('templates')
                     ->isRequired()
                     ->cannotBeEmpty()
