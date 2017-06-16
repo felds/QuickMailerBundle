@@ -34,7 +34,6 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end() // reply_to
                 ->arrayNode('templates')
-                    ->isRequired()
                     ->cannotBeEmpty()
                     ->useAttributeAsKey('name')
                     ->prototype('scalar')

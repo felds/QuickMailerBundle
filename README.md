@@ -12,6 +12,7 @@ following command to download the latest stable version of this bundle:
 ```console
 composer require felds/quick-mailer-bundle
 ```
+
 This command requires you to have Composer installed globally, as explained
 in the [installation chapter](https://getcomposer.org/doc/00-intro.md)
 of the Composer documentation.
@@ -38,12 +39,22 @@ class AppKernel extends Kernel
 }
 ```
 
+### Step 3: Add the basic configuration
+
+```yaml
+// app/config/config.yml
+
+quickmailer:
+    from: { name: "Sender Name", email: "sender@example.com" }
+```
 
 ## Usage
 
-### Step 1: Create the template
+### Step 1: Create a template
 
 ```twig
+{# app/Resources/views/email/cookie.html.twig #}
+
 {% block subject %}
 Hey, {{ name|title }}! You've got a cookie!
 {% endblock %}
@@ -59,21 +70,14 @@ Hey, {{ name|title }}! You've got a cookie!
 {% endblock %}
 ```
 
-### Step 2: Create a QuickMailer service
+### Step 2: Add it to the configuration
 
 ```yaml
-# app/config/services.yml
-services:
+# app/config/config.yml
+quickmailer:
     # ...
-    my_quick_mailer:
-        class: Felds\QuickMailerBundle\Mailer
-        public: true
-        arguments:
-            - '@mailer'
-            - '@twig'
-            - 'From Name'
-            - 'from-email@example.com'
-            - 'email/my-template.html.twig'
+    templates:
+        cookie: email/cookie.html.twig
 ```
 
 ### Step 3: Send the email
@@ -83,12 +87,10 @@ services:
 
 use Felds\QuickMailerBundle\Model\Mailable;
 
-// asuming we're inside a controller action:
+// assuming we're inside a controller action:
 
-$recipient = new Mailable('Recipient`s Name', 'recipient@example.com');
-
-$mailer = $this->get('my_quick_mailer');
-$success = $mailer->sendTo($recipient, [
+$recipient = new Mailable('Recipient', 'recipient@example.com');
+$this->get('quickmailer.cookie')->sendTo($recipient, [
     'name'    => $recipient->getName(),
     'flavor'  => 'blueberry',
 ]);
