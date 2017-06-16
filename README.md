@@ -1,8 +1,23 @@
 QuickMailerBundle
 =================
 
+This bundle provides an easily configurable façade for sending transactional
+emails without having to build the message from scratch every time.  
+
+It has a limited scope by design, it's not infinitely configurable and it's not
+made to work outside a typical Symfony installation.
+
+
 
 ## Instalation
+
+### Step 0: Before you begin
+
+Under the hood, QuickMailer uses Twig as its template engine and Swift Mailer
+to actually send the messages.
+
+Make sure that both components are installed and properly configured.
+
 
 ### Step 1: Download the bundle
 
@@ -17,7 +32,8 @@ This command requires you to have Composer installed globally, as explained
 in the [installation chapter](https://getcomposer.org/doc/00-intro.md)
 of the Composer documentation.
 
-### Step 2: Enable the Bundle
+
+### Step 2: Enable the bundle
 
 Then, enable the bundle by adding it to the list of registered bundles
 in the `app/AppKernel.php` file of your project:
@@ -47,6 +63,7 @@ class AppKernel extends Kernel
 quickmailer:
     from: { name: "Sender Name", email: "sender@example.com" }
 ```
+
 
 ## Usage
 
@@ -97,106 +114,13 @@ $this->get('quickmailer.cookie')->sendTo($recipient, [
 ```
 
 
-## Sending multiple different emails
+## To do
 
+### Code
 
-### Step 1: Create multiple templates
+[ ] Add tests
 
-```twig
-{# app/Resources/views/email/base.html.twig #}
+### Docs
 
-{% block subject "App Name" %}
-
-{% block html %}
-<h1>App Name</h1>
-
-{{ block('html_content') }}
-{% endblock %}
-
-{% block text %}
-App Name
-========
-
-{{ block('text_content') }}
-{% endblock %}
-```
-
-```twig
-{# app/Resources/views/email/cookie.html.twig #}
-
-{% extends 'email/base.html.twig' %}
-
-{% block subject -%}
-{{ parent() }} - You received a cookie!
-{%- endblock %}
-
-{% block html_content %}
-<p>Take this delicious cookie</p>
-{% endblock %}
-
-{% block text_content %}
-Take this delicious cookie
-{% endblock %}
-```
-
-```twig
-{# app/Resources/views/email/tea.html.twig #}
-
-{% extends 'email/base.html.twig' %}
-
-{% block subject -%}
-{{ parent() }} - Take a sip.
-{%- endblock %}
-
-{% block html_content %}
-<p>Just relax. I'm bringing you some tea.</p>
-{% endblock %}
-
-{% block text_content %}
-Just relax. I'm bringing you some tea.
-{% endblock %}
-```
-
-
-### Step 2: Create multiple services
-
-```yaml
-# app/config/services.yml
-services:
-    # ...
-    abstract_quick_mailer:
-        class: Felds\QuickMailerBundle\Mailer
-        public: true
-        abstract: true
-        arguments:
-            - '@mailer'
-            - '@twig'
-            - 'From Name'
-            - 'from-email@example.com'
-            # don't fill the template parameter
-
-    cookie_quick_mailer:
-        parent: abstract_quick_mailer
-        arguments:
-            - 'email/cookie.html.twig'
-
-    tea_quick_mailer:
-        parent: abstract_quick_mailer
-        arguments:
-            - 'email/tea.html.twig'
-```
-
-### Step 3: Send the email
-
-```php
-<?php
-
-use Felds\QuickMailerBundle\Model\Mailable;
-
-// asuming we're inside a controller action:
-
-$recipient = new Mailable('Recipient`s Name', 'recipient@example.com');
-
-$mailer = $this->get('cookie_quick_mailer');
-$success = $mailer->sendTo($recipient, []);
-```
+[ ] Config reference
+[ ] Examples of how to integrate it with other tools
