@@ -118,9 +118,9 @@ $this->get('quickmailer.cookie')->sendTo($recipient, [
 
 ### Code
 
-[ ] Add tests
+[_] Add tests
 
 ### Docs
 
-[ ] Config reference
-[ ] Examples of how to integrate it with other tools
+[_] Config reference
+[_] Examples of how to integrate it with other tools
