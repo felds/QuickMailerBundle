@@ -9,13 +9,18 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {
-        "php": "^7.0",
-        "symfony/symfony": "^3.3||^4.0",
-        "symfony/swiftmailer-bundle": "^2.3",
-        "twig/twig": "^1.0||^2.0"
-    },
     "autoload": {
         "psr-4": { "Felds\\QuickMailerBundle\\": "" }
+    },
+    "require": {
+        "php": "^7.0",
+        "swiftmailer/swiftmailer": "^6.0",
+        "twig/twig": "^1.0||^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    },
+    "config": {
+        "sort-packages": true
     }
 }
