@@ -1,0 +1,9 @@
+quickmailer:
+    from:
+        name: Sender`s Name
+        email: sender@example.com
+    reply_to:
+        name: Reply To Name
+        email: reply-to@example.org
+    templates:
+        welcome: email/welcome.html.twig
