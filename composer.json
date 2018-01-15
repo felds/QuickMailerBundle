@@ -26,6 +26,6 @@
         "sort-packages": true
     },
     "scripts": {
-        "run": "phpunit --colors Tests"
+        "test": "phpunit --colors=always"
     }
 }
