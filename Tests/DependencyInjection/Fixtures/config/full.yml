@@ -6,4 +6,6 @@ quickmailer:
         name: Reply To Name
         email: reply-to@example.org
     templates:
-        welcome: email/welcome.html.twig
+        welcome:
+            template: email/welcome.html.twig
+            enabled: true
