@@ -41,7 +41,7 @@ class QuickMailerExtension extends Extension
         $from       = $this->setMailableDefinition($container, 'from', $config['from'] ?? null);
         $replyTo    = $this->setMailableDefinition($container, 'reply_to', $config['reply_to'] ?? null);
 
-        foreach ($config['templates'] as $name => $template) {
+        foreach ($config['templates'] as $name => $args) {
             // create the new mailer id
             $id = 'quickmailer.' . $name;
 
@@ -49,7 +49,8 @@ class QuickMailerExtension extends Extension
             $definition = new Definition(QuickMailer::class, [
                 new Reference('mailer'),
                 new Reference('twig'),
-                $template,
+                $args['template'],
+                $args['enabled'],
             ]);
 
             // add from and reply-to fields when needed
