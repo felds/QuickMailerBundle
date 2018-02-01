@@ -54,8 +54,10 @@ class QuickMailerExtension extends Extension
                 new Reference('twig'),
                 new Reference($logger),
                 $args['template'],
+                $name,
                 $args['enabled'],
             ]);
+
 
             // add from and reply-to fields when needed
             if ($from) {

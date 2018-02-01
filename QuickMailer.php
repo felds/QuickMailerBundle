@@ -25,9 +25,15 @@ class QuickMailer
     private $logger;
 
     /**
+     * @var string
+     */
+    private $name;
+
+    /**
      * @var MailableInterface|null
      */
     private $from;
+
     /**
      * @var MailableInterface|null
      */
@@ -48,12 +54,13 @@ class QuickMailer
      */
     private $isEnabled;
 
-    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, LoggerInterface $logger, string $template, bool $isEnabled = true)
+    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, LoggerInterface $logger, string $template, string $name, bool $isEnabled = true)
     {
         $this->mailer = $mailer;
         $this->twig = $twig;
         $this->logger = $logger;
         $this->template = $this->twig->load($template);
+        $this->name = $name;
         $this->isEnabled = $isEnabled;
     }
 
@@ -62,11 +69,22 @@ class QuickMailer
      */
     public function sendTo(MailableInterface $recipient, array $payload = []): int
     {
-        if (!$this->from)
-            throw new \RuntimeException("Please set the `from` field in the QuickMailer config.");
+        $this->logger->info("Sending email...", [
+            'name' => $this->name,
+            'from' => $this->from ? [$this->from->getName(), $this->from->getEmail()] : null,
+            'reply_to' => $this->replyTo ? [$this->replyTo->getName(), $this->replyTo->getEmail()] : null,
+            'to' => $recipient ? [$recipient->getName(), $recipient->getEmail()] : null,
+        ]);
 
-        if (!$this->isEnabled)
-            return 0; // @TODO log
+        if (!$this->from) {
+            $this->logger->error("From field is not set.");
+            throw new \RuntimeException("Please set the `from` field in the QuickMailer config.");
+        }
+
+        if (!$this->isEnabled) {
+            $this->logger->notice("The quickmailer {$this->name} is disabled.");
+            return 0;
+        }
 
         $data = array_merge($this->defaultData, $payload);
 
