@@ -3,6 +3,7 @@
 namespace Felds\QuickMailerBundle;
 
 use Felds\QuickMailerBundle\Model\MailableInterface;
+use Psr\Log\LoggerInterface;
 use Swift_Mailer;
 use Twig_Environment;
 
@@ -17,6 +18,11 @@ class QuickMailer
      * @var Twig_Environment
      */
     private $twig;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var MailableInterface|null
@@ -42,10 +48,11 @@ class QuickMailer
      */
     private $isEnabled;
 
-    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, string $template, bool $isEnabled = true)
+    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, LoggerInterface $logger, string $template, bool $isEnabled = true)
     {
-        $this->mailer   = $mailer;
-        $this->twig     = $twig;
+        $this->mailer = $mailer;
+        $this->twig = $twig;
+        $this->logger = $logger;
         $this->template = $this->twig->load($template);
         $this->isEnabled = $isEnabled;
     }

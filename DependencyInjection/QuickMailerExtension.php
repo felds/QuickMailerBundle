@@ -2,14 +2,15 @@
 
 namespace Felds\QuickMailerBundle\DependencyInjection;
 
+use Felds\QuickMailerBundle\Model\Mailable;
+use Felds\QuickMailerBundle\QuickMailer;
+use Psr\Log\NullLogger;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Felds\QuickMailerBundle\QuickMailer;
-use Felds\QuickMailerBundle\Model\Mailable;
 
 /**
  * This is the class that loads and manages your bundle configuration.
@@ -36,6 +37,8 @@ class QuickMailerExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
+        // configure logger
+        $logger = $this->setLoggerDefinition($container, $config['logger']);
 
         // create config services
         $from       = $this->setMailableDefinition($container, 'from', $config['from'] ?? null);
@@ -49,6 +52,7 @@ class QuickMailerExtension extends Extension
             $definition = new Definition(QuickMailer::class, [
                 new Reference('mailer'),
                 new Reference('twig'),
+                new Reference($logger),
                 $args['template'],
                 $args['enabled'],
             ]);
@@ -83,6 +87,20 @@ class QuickMailerExtension extends Extension
             $config['email'],
         ]);
         $container->setDefinition($id, $definition);
+
+        return $id;
+    }
+
+    private function setLoggerDefinition(ContainerBuilder $container, $config)
+    {
+        $id = 'quickmailer.logger';
+
+        if ($config) {
+            $container->setAlias($id, $config);
+        } else {
+            $definition = new Definition(NullLogger::class);
+            $container->setDefinition($id, $definition);
+        }
 
         return $id;
     }

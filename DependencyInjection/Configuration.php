@@ -46,7 +46,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end() // templates
-                ->scalarNode('logger_service')->defaultValue('logger')->end()
+                ->scalarNode('logger')->example('logger')->defaultFalse()->end()
             ->end()
         ;
 
