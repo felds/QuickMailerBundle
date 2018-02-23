@@ -2,6 +2,7 @@
 
 namespace Felds\QuickMailerBundle\DependencyInjection;
 
+use Felds\QuickMailerBundle\EventListener\TransportException;
 use Felds\QuickMailerBundle\Model\Mailable;
 use Felds\QuickMailerBundle\QuickMailer;
 use Psr\Log\NullLogger;
@@ -70,6 +71,8 @@ class QuickMailerExtension extends Extension
             // add the definition to the container
             $container->setDefinition($id, $definition);
         }
+
+        $this->addLoggingListeners($container, $logger, $config['mailer']);
     }
 
 
@@ -105,5 +108,17 @@ class QuickMailerExtension extends Extension
         }
 
         return $id;
+    }
+
+    private function addLoggingListeners(ContainerBuilder $container, string $logger, string $mailer)
+    {
+        $id = 'quickmailer.listener.transport_exception';
+
+        $definition = new Definition(TransportException::class, [
+            new Reference($logger),
+        ]);
+        $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
+
+        $container->setDefinition($id, $definition);
     }
 }
