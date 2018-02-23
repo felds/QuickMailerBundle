@@ -8,6 +8,7 @@
             "email": "dev@felds.com.br"
         }
     ],
+    "homepage": "https://github.com/felds/QuickMailerBundle",
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": { "Felds\\QuickMailerBundle\\": "" }
