@@ -5,6 +5,7 @@ namespace Felds\QuickMailerBundle;
 use Felds\QuickMailerBundle\Model\MailableInterface;
 use Psr\Log\LoggerInterface;
 use Swift_Mailer;
+use Throwable;
 use Twig_Environment;
 
 class QuickMailer
@@ -69,22 +70,16 @@ class QuickMailer
      */
     public function sendTo(MailableInterface $recipient, array $payload = []): int
     {
-        $this->logger->info("Sending email...", [
-            'name' => $this->name,
-            'from' => $this->from ? [$this->from->getName(), $this->from->getEmail()] : null,
-            'reply_to' => $this->replyTo ? [$this->replyTo->getName(), $this->replyTo->getEmail()] : null,
-            'to' => $recipient ? [$recipient->getName(), $recipient->getEmail()] : null,
-        ]);
+        if (!$this->isEnabled) {
+            $this->logger->notice("The quickmailer {$this->name} is disabled.");
+            return 0;
+        }
 
         if (!$this->from) {
             $this->logger->error("From field is not set.");
             throw new \RuntimeException("Please set the `from` field in the QuickMailer config.");
         }
 
-        if (!$this->isEnabled) {
-            $this->logger->notice("The quickmailer {$this->name} is disabled.");
-            return 0;
-        }
 
         $data = array_merge($this->defaultData, $payload);
 
@@ -92,20 +87,39 @@ class QuickMailer
         $htmlBody   = $this->getHtmlBody($data);
         $textBody   = $this->getTextBody($data);
 
-        /** @var \Swift_Message $message */
-        $message = $this->mailer->createMessage()
-            ->setFrom([ $this->from->getEmail() => $this->from->getName() ])
-            ->setTo([ $recipient->getEmail() => $recipient->getName() ])
-            ->setSubject($subject)
-            ->addPart($htmlBody, 'text/html')
-            ->addPart($textBody, 'text/plain')
-        ;
+        try {
+            /** @var \Swift_Message $message */
+            $message = $this->mailer->createMessage()
+                ->setFrom([ $this->from->getEmail() => $this->from->getName() ])
+                ->setTo([ $recipient->getEmail() => $recipient->getName() ])
+                ->setSubject($subject)
+                ->addPart($htmlBody, 'text/html')
+                ->addPart($textBody, 'text/plain')
+            ;
+            if ($this->replyTo) {
+                $message->setReplyTo([ $this->replyTo->getEmail() => $this->replyTo->getName() ]);
+            }
 
-        if ($this->replyTo) {
-            $message->setReplyTo([ $this->replyTo->getEmail() => $this->replyTo->getName() ]);
+            $this->logger->info("Sending email...", [
+                'id' => $message->getId(),
+                'name' => $this->name,
+                'from' => $this->from ? [$this->from->getName(), $this->from->getEmail()] : null,
+                'reply_to' => $this->replyTo ? [$this->replyTo->getName(), $this->replyTo->getEmail()] : null,
+                'to' => $recipient ? [$recipient->getName(), $recipient->getEmail()] : null,
+            ]);
+
+            return $this->mailer->send($message);
+        } catch (Throwable $exception) {
+            $this->logger->critical("The email cannot be sent!", [
+                'message' => $exception->getMessage(),
+                'name' => $this->name,
+                'from' => $this->from ? [$this->from->getName(), $this->from->getEmail()] : null,
+                'reply_to' => $this->replyTo ? [$this->replyTo->getName(), $this->replyTo->getEmail()] : null,
+                'to' => $recipient ? [$recipient->getName(), $recipient->getEmail()] : null,
+            ]);
         }
 
-        return $this->mailer->send($message);
+        return 0;
     }
 
     public function setFrom(MailableInterface $from): self

@@ -47,6 +47,7 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end() // templates
                 ->scalarNode('logger')->example('logger')->defaultFalse()->end()
+                ->scalarNode('mailer')->defaultValue('default')->end()
             ->end()
         ;
 
