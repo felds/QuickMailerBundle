@@ -1,0 +1,4 @@
+quickmailer:
+    from: { name: "Sender Name", email: "sender@example.com" }
+    templates:
+        simple: email/simple.html.twig

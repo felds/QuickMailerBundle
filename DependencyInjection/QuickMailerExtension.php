@@ -6,11 +6,11 @@ use Felds\QuickMailerBundle\EventListener\Send;
 use Felds\QuickMailerBundle\EventListener\TransportException;
 use Felds\QuickMailerBundle\Model\Mailable;
 use Felds\QuickMailerBundle\QuickMailer;
+use Felds\QuickMailerBundle\QuickMailerInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
@@ -36,44 +36,58 @@ class QuickMailerExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.yml');
-
-        // configure logger
         $logger = $this->setLoggerDefinition($container, $config['logger']);
 
-        // create config services
-        $from       = $this->setMailableDefinition($container, 'from', $config['from'] ?? null);
-        $replyTo    = $this->setMailableDefinition($container, 'reply_to', $config['reply_to'] ?? null);
-
-        foreach ($config['templates'] as $name => $args) {
-            // create the new mailer id
-            $id = 'quickmailer.' . $name;
-
-            // setup the basic definition
-            $definition = new Definition(QuickMailer::class, [
-                new Reference('mailer'),
-                new Reference('twig'),
-                new Reference($logger),
-                $args['template'],
-                $name,
-                $args['enabled'],
-            ]);
+        $definition = new Definition(QuickMailer::class, [
+            new Reference('mailer'), // @todo make it dynamic?
+            new Reference('twig'), // @todo make it dynamic?
+            new Reference($logger), // @todo make it dynamic?
+            $config['templates'],
+        ]);
+        $container->setDefinition(QuickMailer::class, $definition);
 
 
-            // add from and reply-to fields when needed
-            if ($from) {
-                $definition->addMethodCall('setFrom', [ new Reference($from) ]);
-            }
-            if ($replyTo) {
-                $definition->addMethodCall('setReplyTo', [ new Reference($replyTo) ]);
-            }
 
-            // add the definition to the container
-            $container->setDefinition($id, $definition);
-        }
 
-        $this->addLoggingListeners($container, $logger, $config['mailer']);
+
+
+        // dd($config);
+
+        // // configure logger
+        // $logger = $this->setLoggerDefinition($container, $config['logger']);
+        //
+        // // create config services
+        // $from       = $this->setMailableDefinition($container, 'from', $config['from'] ?? null);
+        // $replyTo    = $this->setMailableDefinition($container, 'reply_to', $config['reply_to'] ?? null);
+        //
+        // foreach ($config['templates'] as $name => $args) {
+        //     // create the new mailer id
+        //     $id = 'quickmailer.' . $name;
+        //
+        //     // setup the basic definition
+        //     $definition = new Definition(QuickMailer::class, [
+        //         new Reference('mailer'),
+        //         new Reference('twig'),
+        //         new Reference($logger),
+        //         $args['template'],
+        //         $name,
+        //         $args['enabled'],
+        //     ]);
+        //
+        //
+        //     // add from and reply-to fields when needed
+        //     if ($from) {
+        //         $definition->addMethodCall('setFrom', [ new Reference($from) ]);
+        //     }
+        //     if ($replyTo) {
+        //         $definition->addMethodCall('setReplyTo', [ new Reference($replyTo) ]);
+        //     }
+        //
+        //     // add the definition to the container
+        //     $container->setDefinition($id, $definition);
+        // }
+        //
+        // $this->addLoggingListeners($container, $logger, $config['mailer']);
     }
 
 

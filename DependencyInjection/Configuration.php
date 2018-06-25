@@ -54,7 +54,7 @@ class Configuration implements ConfigurationInterface
                     ->arrayPrototype()
                         ->beforeNormalization()
                             ->ifString()
-                                ->then(function ($template) { return ['template' => $template]; })
+                                ->then(function ($template) { return ['path' => $template]; })
                         ->end()
                         ->children()
                             ->scalarNode('path')->isRequired()->cannotBeEmpty()->end()

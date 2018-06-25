@@ -2,13 +2,14 @@
 
 namespace Felds\QuickMailerBundle;
 
+use Felds\QuickMailerBundle\Exception\TemplateNotFound;
 use Felds\QuickMailerBundle\Model\MailableInterface;
 use Psr\Log\LoggerInterface;
 use Swift_Mailer;
 use Throwable;
 use Twig_Environment;
 
-class QuickMailer
+class QuickMailer implements QuickMailerInterface
 {
     /**
      * @var Swift_Mailer
@@ -26,11 +27,6 @@ class QuickMailer
     private $logger;
 
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
      * @var MailableInterface|null
      */
     private $from;
@@ -41,28 +37,26 @@ class QuickMailer
     private $replyTo;
 
     /**
-     * @var \Twig_TemplateWrapper
+     * @var array<string, array> $templates
      */
-    private $template;
+    private $templates;
+
+
+
 
     /**
-     * @var array
+     * @param array<string, array> $templates
      */
-    private $defaultData = [];
-
-    /**
-     * @var bool
-     */
-    private $isEnabled;
-
-    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, LoggerInterface $logger, string $template, string $name, bool $isEnabled = true)
-    {
+    public function __construct(
+        Swift_Mailer $mailer,
+        Twig_Environment $twig,
+        LoggerInterface $logger,
+        array $templates
+    ) {
         $this->mailer = $mailer;
         $this->twig = $twig;
         $this->logger = $logger;
-        $this->template = $this->twig->load($template);
-        $this->name = $name;
-        $this->isEnabled = $isEnabled;
+        $this->templates = $templates;
     }
 
     /**
@@ -72,6 +66,7 @@ class QuickMailer
     {
         if (!$this->isEnabled) {
             $this->logger->notice("The quickmailer {$this->name} is disabled.");
+
             return 0;
         }
 
@@ -83,21 +78,21 @@ class QuickMailer
 
         $data = array_merge($this->defaultData, $payload);
 
-        $subject    = $this->getSubject($data);
-        $htmlBody   = $this->getHtmlBody($data);
-        $textBody   = $this->getTextBody($data);
+        $subject = $this->getSubject($data);
+        $htmlBody = $this->getHtmlBody($data);
+        $textBody = $this->getTextBody($data);
 
         try {
             /** @var \Swift_Message $message */
             $message = $this->mailer->createMessage()
-                ->setFrom([ $this->from->getEmail() => $this->from->getName() ])
-                ->setTo([ $recipient->getEmail() => $recipient->getName() ])
+                ->setFrom([$this->from->getEmail() => $this->from->getName()])
+                ->setTo([$recipient->getEmail() => $recipient->getName()])
                 ->setSubject($subject)
                 ->addPart($htmlBody, 'text/html')
                 ->addPart($textBody, 'text/plain')
             ;
             if ($this->replyTo) {
-                $message->setReplyTo([ $this->replyTo->getEmail() => $this->replyTo->getName() ]);
+                $message->setReplyTo([$this->replyTo->getEmail() => $this->replyTo->getName()]);
             }
 
             $this->logger->info("Sending email...", [
@@ -122,6 +117,21 @@ class QuickMailer
         return 0;
     }
 
+    private function getSubject(array $payload = []): string
+    {
+        return $this->template->renderBlock('subject', $payload);
+    }
+
+    private function getHtmlBody(array $payload = []): string
+    {
+        return $this->template->renderBlock('html', $payload);
+    }
+
+    private function getTextBody(array $payload = []): string
+    {
+        return $this->template->renderBlock('text', $payload);
+    }
+
     public function setFrom(MailableInterface $from): self
     {
         $this->from = $from;
@@ -143,18 +153,16 @@ class QuickMailer
         return $this;
     }
 
-    private function getSubject(array $payload = []): string
+    /**
+     * @todo memoize template after creation
+     * @throws TemplateNotFound
+     */
+    public function get(string $name): Template
     {
-        return $this->template->renderBlock('subject', $payload);
-    }
+        if (!array_key_exists($name, $this->templates)) {
+            throw new TemplateNotFound("Template “{$name}” not found.");
+        }
 
-    private function getHtmlBody(array $payload = []): string
-    {
-        return $this->template->renderBlock('html', $payload);
-    }
-
-    private function getTextBody(array $payload = []): string
-    {
-        return $this->template->renderBlock('text', $payload);
+        return new Template($this, $this->twig, $this->templates[$name]);
     }
 }
