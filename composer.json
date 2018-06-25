@@ -21,7 +21,7 @@
         "symfony/dependency-injection": "^4.0",
         "symfony/http-kernel": "^4.0",
         "symfony/twig-bundle": "^3.3",
-        "symfony/swiftmailer-bundle": "^3.3",
+        "symfony/swiftmailer-bundle": "^3.2",
         "twig/twig": "^2.4"
     },
     "require-dev": {
