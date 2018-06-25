@@ -23,14 +23,30 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('from')
                     ->isRequired()
                     ->children()
-                        ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('name')
+                            ->isRequired()
+                            ->cannotBeEmpty()
+                            ->example("Sender Name")
+                        ->end() // name
+                        ->scalarNode('email')
+                            ->isRequired()
+                            ->cannotBeEmpty()
+                            ->example("from@example.com")
+                        ->end() // email
                     ->end()
                 ->end() // from
                 ->arrayNode('reply_to')
                     ->children()
-                        ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('email')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('name')
+                            ->isRequired()
+                            ->cannotBeEmpty()
+                            ->example("Reply-To Name")
+                        ->end() // name
+                        ->scalarNode('email')
+                            ->isRequired()
+                            ->cannotBeEmpty()
+                            ->example("reply-to@example.com")
+                        ->end() // email
                     ->end()
                 ->end() // reply_to
                 ->arrayNode('templates')
@@ -41,7 +57,7 @@ class Configuration implements ConfigurationInterface
                                 ->then(function ($template) { return ['template' => $template]; })
                         ->end()
                         ->children()
-                            ->scalarNode('template')->isRequired()->cannotBeEmpty()->end()
+                            ->scalarNode('path')->isRequired()->cannotBeEmpty()->end()
                             ->booleanNode('enabled')->defaultTrue()->end()
                         ->end()
                     ->end()
