@@ -1,11 +1,8 @@
 quickmailer:
-    from:
-        name: Sender`s Name
-        email: sender@example.com
-    reply_to:
-        name: Reply To Name
-        email: reply-to@example.org
+    from: { name: "Sender Name", email: "sender@example.com" }
+    reply_to: { name: "Reply-to Name", email: "reply-to@example.org" }
     templates:
         welcome:
-            template: email/welcome.html.twig
+            path: email/welcome.html.twig
             enabled: true
+        simple: email/simple.html.twig
