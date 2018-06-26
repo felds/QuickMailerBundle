@@ -52,9 +52,6 @@ class Template
      */
     private $templateWrapper;
 
-    /**
-     * @param
-     */
     public function __construct(
         string $name,
         array $config,
