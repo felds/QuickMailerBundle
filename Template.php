@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Felds\QuickMailerBundle;
 
-use Felds\QuickMailerBundle\Model\Mailable;
+use Felds\QuickMailerBundle\Model\MailableInterface;
 use Psr\Log\LoggerInterface;
 use Swift_Mailer;
 use Throwable;
@@ -38,12 +38,12 @@ class Template
     private $config;
 
     /**
-     * @var Mailable
+     * @var MailableInterface
      */
     private $from;
 
     /**
-     * @var Mailable|null
+     * @var MailableInterface|null
      */
     private $replyTo;
 
@@ -58,8 +58,8 @@ class Template
         Twig_Environment $twig,
         Swift_Mailer $mailer,
         LoggerInterface $logger,
-        Mailable $from,
-        ?Mailable $replyTo = null
+        MailableInterface $from,
+        ?MailableInterface $replyTo = null
     ) {
         $this->name = $name;
         $this->config = $config;
@@ -72,11 +72,11 @@ class Template
     }
 
     /**
-     * @param Mailable $recipient Who should receive the email
+     * @param MailableInterface $recipient Who should receive the email
      * @param array<string, mixed> $payload Data to be used by the template.
      * @return int Number of emails sent (usually 1 on success; 0 on failure)
      */
-    public function sendTo(Mailable $recipient, array $payload = []): int
+    public function sendTo(MailableInterface $recipient, array $payload = []): int
     {
         if (!$this->config['enabled']) {
             $this->logger->notice("The quickmailer {$this->name} is disabled.");
