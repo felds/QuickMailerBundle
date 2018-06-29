@@ -1,6 +1,6 @@
 {
     "name": "felds/quick-mailer-bundle",
-    "type": "library",
+    "type": "symfony-bundle",
     "license": "MIT",
     "authors": [
         {
