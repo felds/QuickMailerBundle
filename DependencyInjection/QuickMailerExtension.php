@@ -25,7 +25,7 @@ class QuickMailerExtension extends Extension
 {
     public function getAlias(): string
     {
-        return 'quickmailer';
+        return 'felds_quickmailer';
     }
 
     /**

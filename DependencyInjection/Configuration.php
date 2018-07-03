@@ -16,7 +16,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('quickmailer');
+        $rootNode = $treeBuilder->root('felds_quickmailer');
 
         $rootNode
             ->children()
