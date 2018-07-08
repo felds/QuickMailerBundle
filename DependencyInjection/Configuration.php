@@ -2,6 +2,7 @@
 
 namespace Felds\QuickMailerBundle\DependencyInjection;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -68,12 +69,12 @@ class Configuration implements ConfigurationInterface
 
                 ->scalarNode('logger')
                     ->example('logger')
-                    ->defaultNull()
+                    ->defaultValue(LoggerInterface::class)
                 ->end() // logger
-                ->scalarNode('mailer_service')
+                ->scalarNode('mailer')
                     ->example('mailer')
-                    ->defaultValue('mailer')
-                ->end() // mailer_service
+                    ->defaultValue(\Swift_Mailer::class)
+                ->end() // mailer
             ->end()
         ;
 

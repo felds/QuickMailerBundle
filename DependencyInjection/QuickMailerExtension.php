@@ -27,6 +27,7 @@ class QuickMailerExtension extends Extension
         return 'felds_quickmailer';
     }
 
+    
     /**
      * {@inheritdoc}
      */
@@ -34,13 +35,14 @@ class QuickMailerExtension extends Extension
     {
         $id = $this->getAlias();
 
+
         // process the configuration file(s)
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
 
         $loggerReference = $this->getLoggerReference($container, $config);
-        // $mailerReference = $this->getMailerReference($container, $config);
+        $mailerReference = $this->getMailerReference($container, $config);
 
 
 
@@ -48,7 +50,7 @@ class QuickMailerExtension extends Extension
         $replyToReference = $this->setMailableDefinition($container, 'reply_to', $config);
 
         $definition = new Definition(QuickMailer::class, [
-            new Reference('mailer'), // @todo make it dynamic?
+            $mailerReference,
             new Reference('twig'), // @todo make it dynamic?
             $loggerReference,
             $config['templates'],
@@ -65,6 +67,7 @@ class QuickMailerExtension extends Extension
         // $this->addLoggingListeners($container, $logger, $config['mailer']);
     }
 
+
     private function getLoggerReference(ContainerBuilder $container, $config): ?Reference
     {
         $id = 'felds_quickmailer.config.logger';
@@ -79,7 +82,8 @@ class QuickMailerExtension extends Extension
         return new Reference($id);
     }
 
-    private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): ?Reference
+
+    private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): Reference
     {
         // validate config
         if (!array_key_exists($name, $config)) {
@@ -126,5 +130,27 @@ class QuickMailerExtension extends Extension
         $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
 
         $container->setDefinition($id, $definition);
+    }
+
+
+    private function getMailerReference(ContainerBuilder $container, $configs): Reference
+    {
+        $id = "{$this->getAlias()}.config.mailer";
+        $config = $configs['mailer'];
+
+        if ($config !== false) {
+            $container->setAlias($id, $config);
+        } else {
+            $transportId = "{$id}.null_transport";
+            $transport = new Definition(\Swift_NullTransport::class);
+            $container->setDefinition($transportId, $transport);
+
+            $definition = new Definition(\Swift_Mailer::class, [
+                new Reference($transportId),
+            ]);
+            $container->setDefinition($id, $definition);
+        }
+
+        return new Reference($id);
     }
 }
