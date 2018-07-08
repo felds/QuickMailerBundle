@@ -16,7 +16,6 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
  * This is the class that loads and manages your bundle configuration.
- *
  * @see http://symfony2-document.readthedocs.io/en/latest/book/service_container.html
  * @see http://symfony2-document.readthedocs.io/en/latest/cookbook/service_container/parentservices.html
  * @link http://symfony.com/doc/current/cookbook/bundles/extension.html
@@ -33,29 +32,51 @@ class QuickMailerExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
+        $id = $this->getAlias();
+
+        // process the configuration file(s)
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $logger = $this->setLoggerDefinition($container, $config['logger']);
+
+        $loggerReference = $this->getLoggerReference($container, $config);
+        // $mailerReference = $this->getMailerReference($container, $config);
+
+
+
         $fromReference = $this->setMailableDefinition($container, 'from', $config);
         $replyToReference = $this->setMailableDefinition($container, 'reply_to', $config);
 
         $definition = new Definition(QuickMailer::class, [
             new Reference('mailer'), // @todo make it dynamic?
             new Reference('twig'), // @todo make it dynamic?
-            new Reference($logger), // @todo make it dynamic?
+            $loggerReference,
             $config['templates'],
             $fromReference,
             $replyToReference,
         ]);
-        $container->setDefinition('quickmailer', $definition);
+        $container->setDefinition($id, $definition);
 
         // make it injectable
-        $alias = new Alias('quickmailer');
+        $alias = new Alias($id);
         $container->setAlias(QuickMailer::class, $alias);
 
         // log mailer events
-        $this->addLoggingListeners($container, $logger, $config['mailer']);
+        // $this->addLoggingListeners($container, $logger, $config['mailer']);
+    }
+
+    private function getLoggerReference(ContainerBuilder $container, $config): ?Reference
+    {
+        $id = 'felds_quickmailer.config.logger';
+
+        if ($config['logger']) {
+            $container->setAlias($id, $config['logger']);
+        } else {
+            $definition = new Definition(NullLogger::class);
+            $container->setDefinition($id, $definition);
+        }
+
+        return new Reference($id);
     }
 
     private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): ?Reference
@@ -66,49 +87,42 @@ class QuickMailerExtension extends Extension
         }
 
         // create a new service id
-        $id = 'quickmailer.config.' . $name;
+        $id = 'felds_quickmailer.config.'.$name;
 
         // add it to the container
-        $definition = new Definition(Mailable::class, [
-            $config[$name]['name'],
-            $config[$name]['email'],
-        ]);
+        $definition = new Definition(
+            Mailable::class, [
+                $config[$name]['name'],
+                $config[$name]['email'],
+            ]
+        );
         $container->setDefinition($id, $definition);
 
         return new Reference($id);
     }
 
-    private function setLoggerDefinition(ContainerBuilder $container, $config): Reference
-    {
-        $id = 'quickmailer.logger';
-
-        if ($config) {
-            $container->setAlias($id, $config);
-        } else {
-            $definition = new Definition(NullLogger::class);
-            $container->setDefinition($id, $definition);
-        }
-
-        return new Reference($id);
-    }
 
     private function addLoggingListeners(ContainerBuilder $container, string $logger, string $mailer): void
     {
         // transport exception
         $id = 'quickmailer.listener.transport_exception';
 
-        $definition = new Definition(TransportException::class, [
-            new Reference($logger),
-        ]);
+        $definition = new Definition(
+            TransportException::class, [
+                new Reference($logger),
+            ]
+        );
         $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
 
         $container->setDefinition($id, $definition);
 
         // send
         $id = 'quickmailer.listener.send';
-        $definition = new Definition(Send::class, [
-            new Reference($logger),
-        ]);
+        $definition = new Definition(
+            Send::class, [
+                new Reference($logger),
+            ]
+        );
         $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
 
         $container->setDefinition($id, $definition);
