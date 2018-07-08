@@ -22,12 +22,6 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 class QuickMailerExtension extends Extension
 {
-    public function getAlias(): string
-    {
-        return 'felds_quickmailer';
-    }
-
-    
     /**
      * {@inheritdoc}
      */
@@ -40,18 +34,16 @@ class QuickMailerExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-
-        $loggerReference = $this->getLoggerReference($container, $config);
         $mailerReference = $this->getMailerReference($container, $config);
-
-
+        $twigReference = $this->getTwigReference($container, $config);
+        $loggerReference = $this->getLoggerReference($container, $config);
 
         $fromReference = $this->setMailableDefinition($container, 'from', $config);
         $replyToReference = $this->setMailableDefinition($container, 'reply_to', $config);
 
         $definition = new Definition(QuickMailer::class, [
             $mailerReference,
-            new Reference('twig'), // @todo make it dynamic?
+            $twigReference,
             $loggerReference,
             $config['templates'],
             $fromReference,
@@ -64,9 +56,13 @@ class QuickMailerExtension extends Extension
         $container->setAlias(QuickMailer::class, $alias);
 
         // log mailer events
-        // $this->addLoggingListeners($container, $logger, $config['mailer']);
+        $this->addLoggingListeners($container, $loggerReference, $config['mailer']);
     }
 
+    public function getAlias(): string
+    {
+        return 'felds_quickmailer';
+    }
 
     private function getLoggerReference(ContainerBuilder $container, $config): ?Reference
     {
@@ -82,6 +78,36 @@ class QuickMailerExtension extends Extension
         return new Reference($id);
     }
 
+    private function getMailerReference(ContainerBuilder $container, $configs): Reference
+    {
+        $id = "{$this->getAlias()}.config.mailer";
+        $config = $configs['mailer'];
+
+        if ($config !== false) {
+            $container->setAlias($id, $config);
+        } else {
+            $transportId = "{$id}.null_transport";
+            $transport = new Definition(\Swift_NullTransport::class);
+            $container->setDefinition($transportId, $transport);
+
+            $definition = new Definition(\Swift_Mailer::class, [
+                new Reference($transportId),
+            ]);
+            $container->setDefinition($id, $definition);
+        }
+
+        return new Reference($id);
+    }
+
+    private function getTwigReference(ContainerBuilder $container, $configs): Reference
+    {
+        $id = "{$this->getAlias()}.config.twig";
+        $config = $configs['twig'];
+
+        $container->setAlias($id, $config);
+
+        return new Reference($id);
+    }
 
     private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): Reference
     {
@@ -105,52 +131,20 @@ class QuickMailerExtension extends Extension
         return new Reference($id);
     }
 
-
-    private function addLoggingListeners(ContainerBuilder $container, string $logger, string $mailer): void
+    private function addLoggingListeners(ContainerBuilder $container, Reference $logger, string $mailer): void
     {
-        // transport exception
-        $id = 'quickmailer.listener.transport_exception';
+        // // transport exception
+        // $id = 'quickmailer.listener.transport_exception';
+        // $definition = new Definition(TransportException::class, [$logger]);
+        // $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
+        //
+        // $container->setDefinition($id, $definition);
 
-        $definition = new Definition(
-            TransportException::class, [
-                new Reference($logger),
-            ]
-        );
-        $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
-
-        $container->setDefinition($id, $definition);
-
-        // send
-        $id = 'quickmailer.listener.send';
-        $definition = new Definition(
-            Send::class, [
-                new Reference($logger),
-            ]
-        );
-        $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
-
-        $container->setDefinition($id, $definition);
-    }
-
-
-    private function getMailerReference(ContainerBuilder $container, $configs): Reference
-    {
-        $id = "{$this->getAlias()}.config.mailer";
-        $config = $configs['mailer'];
-
-        if ($config !== false) {
-            $container->setAlias($id, $config);
-        } else {
-            $transportId = "{$id}.null_transport";
-            $transport = new Definition(\Swift_NullTransport::class);
-            $container->setDefinition($transportId, $transport);
-
-            $definition = new Definition(\Swift_Mailer::class, [
-                new Reference($transportId),
-            ]);
-            $container->setDefinition($id, $definition);
-        }
-
-        return new Reference($id);
+        // // send
+        // $id = 'quickmailer.listener.send';
+        // $definition = new Definition(Send::class, [$logger]);
+        // $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
+        //
+        // $container->setDefinition($id, $definition);
     }
 }

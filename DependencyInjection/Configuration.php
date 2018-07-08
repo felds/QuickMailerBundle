@@ -36,6 +36,7 @@ class Configuration implements ConfigurationInterface
                         ->end() // email
                     ->end()
                 ->end() // from
+
                 ->arrayNode('reply_to')
                     ->children()
                         ->scalarNode('name')
@@ -50,6 +51,7 @@ class Configuration implements ConfigurationInterface
                         ->end() // email
                     ->end()
                 ->end() // reply_to
+
                 ->arrayNode('templates')
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
@@ -64,17 +66,20 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end() // templates
 
-
-                // Services
-
                 ->scalarNode('logger')
-                    ->example('logger')
+                    ->treatNullLike(LoggerInterface::class)
                     ->defaultValue(LoggerInterface::class)
                 ->end() // logger
+
                 ->scalarNode('mailer')
-                    ->example('mailer')
+                    ->treatNullLike(\Swift_Mailer::class)
                     ->defaultValue(\Swift_Mailer::class)
                 ->end() // mailer
+
+                ->scalarNode('twig')
+                    ->treatNullLike(\Twig_Environment::class)
+                    ->defaultValue(\Twig_Environment::class)
+                ->end() // twig
             ->end()
         ;
 
