@@ -66,20 +66,13 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end() // templates
 
-                ->scalarNode('logger')
-                    ->treatNullLike(LoggerInterface::class)
-                    ->defaultValue(LoggerInterface::class)
+                ->scalarNode('logger_handler')
+                    ->defaultValue('main')
                 ->end() // logger
 
-                ->scalarNode('mailer')
-                    ->treatNullLike(\Swift_Mailer::class)
-                    ->defaultValue(\Swift_Mailer::class)
+                ->scalarNode('mailer_name')
+                    ->defaultValue('default')
                 ->end() // mailer
-
-                ->scalarNode('twig')
-                    ->treatNullLike(\Twig_Environment::class)
-                    ->defaultValue(\Twig_Environment::class)
-                ->end() // twig
             ->end()
         ;
 

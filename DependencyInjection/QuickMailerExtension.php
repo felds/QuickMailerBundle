@@ -34,9 +34,9 @@ class QuickMailerExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $mailerReference = $this->getMailerReference($container, $config);
-        $twigReference = $this->getTwigReference($container, $config);
-        $loggerReference = $this->getLoggerReference($container, $config);
+        $mailerReference = $this->getMailerReference($container, $config['mailer_name']);
+        $twigReference = $this->getTwigReference($container);
+        $loggerReference = $this->getLoggerReference($container, $config['logger_handler']);
 
         $fromReference = $this->setMailableDefinition($container, 'from', $config);
         $replyToReference = $this->setMailableDefinition($container, 'reply_to', $config);
@@ -56,7 +56,7 @@ class QuickMailerExtension extends Extension
         $container->setAlias(QuickMailer::class, $alias);
 
         // log mailer events
-        $this->addLoggingListeners($container, $loggerReference, $config['mailer']);
+        $this->addLoggingListeners($container, $loggerReference, $config['mailer_name']);
     }
 
     public function getAlias(): string
@@ -64,27 +64,13 @@ class QuickMailerExtension extends Extension
         return 'felds_quickmailer';
     }
 
-    private function getLoggerReference(ContainerBuilder $container, $config): ?Reference
-    {
-        $id = 'felds_quickmailer.config.logger';
-
-        if ($config['logger']) {
-            $container->setAlias($id, $config['logger']);
-        } else {
-            $definition = new Definition(NullLogger::class);
-            $container->setDefinition($id, $definition);
-        }
-
-        return new Reference($id);
-    }
-
-    private function getMailerReference(ContainerBuilder $container, $configs): Reference
+    private function getMailerReference(ContainerBuilder $container, $name): Reference
     {
         $id = "{$this->getAlias()}.config.mailer";
-        $config = $configs['mailer'];
 
-        if ($config !== false) {
-            $container->setAlias($id, $config);
+        if ($name !== false) {
+            $mailer = "swiftmailer.mailer.{$name}";
+            $container->setAlias($id, $mailer);
         } else {
             $transportId = "{$id}.null_transport";
             $transport = new Definition(\Swift_NullTransport::class);
@@ -99,17 +85,32 @@ class QuickMailerExtension extends Extension
         return new Reference($id);
     }
 
-    private function getTwigReference(ContainerBuilder $container, $configs): Reference
+    private function getTwigReference(ContainerBuilder $container): Reference
     {
         $id = "{$this->getAlias()}.config.twig";
-        $config = $configs['twig'];
 
-        $container->setAlias($id, $config);
+        $container->setAlias($id, 'twig');
 
         return new Reference($id);
     }
 
-    private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): Reference
+    private function getLoggerReference(ContainerBuilder $container, $handler): Reference
+    {
+        $id = 'felds_quickmailer.config.logger';
+
+
+        if ($handler === false) {
+            $definition = new Definition(NullLogger::class);
+            $container->setDefinition($id, $definition);
+        } else {
+            $service = ($handler === 'main') ? 'monolog.logger' : "monolog.logger.{$handler}";
+            $container->setAlias($id, $service);
+        }
+
+        return new Reference($id);
+    }
+
+    private function setMailableDefinition(ContainerBuilder $container, string $name, array $config): ?Reference
     {
         // validate config
         if (!array_key_exists($name, $config)) {
@@ -133,18 +134,18 @@ class QuickMailerExtension extends Extension
 
     private function addLoggingListeners(ContainerBuilder $container, Reference $logger, string $mailer): void
     {
-        // // transport exception
-        // $id = 'quickmailer.listener.transport_exception';
-        // $definition = new Definition(TransportException::class, [$logger]);
-        // $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
-        //
-        // $container->setDefinition($id, $definition);
+        // transport exception
+        $id = "{$this->getAlias()}.listener.transport_exception";
+        $definition = new Definition(TransportException::class, [$logger]);
+        $definition->addTag("swiftmailer.{$mailer}.plugin");
 
-        // // send
-        // $id = 'quickmailer.listener.send';
-        // $definition = new Definition(Send::class, [$logger]);
-        // $definition->addTag(sprintf('swiftmailer.%s.plugin', $mailer));
-        //
-        // $container->setDefinition($id, $definition);
+        $container->setDefinition($id, $definition);
+
+        // send
+        $id = "{$this->getAlias()}.listener.send";
+        $definition = new Definition(Send::class, [$logger]);
+        $definition->addTag("swiftmailer.{$mailer}.plugin");
+
+        $container->setDefinition($id, $definition);
     }
 }
